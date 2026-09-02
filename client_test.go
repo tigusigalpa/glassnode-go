@@ -88,11 +88,11 @@ func TestGet_Retry429(t *testing.T) {
 		if attempts < 3 {
 			w.Header().Set("x-rate-limit-reset", "0")
 			w.WriteHeader(http.StatusTooManyRequests)
-			w.Write([]byte(`{"message":"rate limited"}`))
+			_, _ = w.Write([]byte(`{"message":"rate limited"}`))
 			return
 		}
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`[{"t":1726790400,"v":822077}]`))
+		_, _ = w.Write([]byte(`[{"t":1726790400,"v":822077}]`))
 	}, WithRetry(5, 10*time.Millisecond))
 	defer srv.Close()
 
@@ -111,7 +111,7 @@ func TestGet_Retry429(t *testing.T) {
 func TestGet_RateLimitedExhausted(t *testing.T) {
 	c, srv := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusTooManyRequests)
-		w.Write([]byte(`{"message":"rate limited"}`))
+		_, _ = w.Write([]byte(`{"message":"rate limited"}`))
 	}, WithRetry(2, 5*time.Millisecond))
 	defer srv.Close()
 
@@ -133,7 +133,7 @@ func TestGet_RateLimitedExhausted(t *testing.T) {
 func TestGet_Unauthorized(t *testing.T) {
 	c, srv := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte(`{"message":"invalid api key"}`))
+		_, _ = w.Write([]byte(`{"message":"invalid api key"}`))
 	})
 	defer srv.Close()
 
@@ -146,7 +146,7 @@ func TestGet_Unauthorized(t *testing.T) {
 func TestGet_NotFound(t *testing.T) {
 	c, srv := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte(`{"message":"not found"}`))
+		_, _ = w.Write([]byte(`{"message":"not found"}`))
 	})
 	defer srv.Close()
 
@@ -159,7 +159,7 @@ func TestGet_NotFound(t *testing.T) {
 func TestGet_BadRequest(t *testing.T) {
 	c, srv := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(`{"message":"invalid parameters"}`))
+		_, _ = w.Write([]byte(`{"message":"invalid parameters"}`))
 	})
 	defer srv.Close()
 
@@ -173,7 +173,7 @@ func TestGet_ContextCancellation(t *testing.T) {
 	c, srv := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
 		time.Sleep(200 * time.Millisecond)
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`[]`))
+		_, _ = w.Write([]byte(`[]`))
 	})
 	defer srv.Close()
 
@@ -195,7 +195,7 @@ func TestGet_AuthorizationHeader(t *testing.T) {
 			t.Errorf("expected X-Api-Key header 'test-api-key', got %q", got)
 		}
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`[]`))
+		_, _ = w.Write([]byte(`[]`))
 	})
 	defer srv.Close()
 
@@ -214,7 +214,7 @@ func TestGet_AuthModeQuery(t *testing.T) {
 			t.Errorf("expected no X-Api-Key header, got %q", got)
 		}
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`[]`))
+		_, _ = w.Write([]byte(`[]`))
 	}, WithAuthMode(AuthModeQuery))
 	defer srv.Close()
 
@@ -229,7 +229,7 @@ func TestGet_URLEncoding(t *testing.T) {
 	c, srv := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
 		capturedPath = r.URL.Path
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`[]`))
+		_, _ = w.Write([]byte(`[]`))
 	})
 	defer srv.Close()
 
@@ -247,7 +247,7 @@ func TestGet_QueryParams(t *testing.T) {
 	c, srv := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
 		capturedQuery = r.URL.RawQuery
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`[]`))
+		_, _ = w.Write([]byte(`[]`))
 	})
 	defer srv.Close()
 
@@ -275,7 +275,7 @@ func TestGet_BulkRepeatedParams(t *testing.T) {
 	c, srv := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
 		capturedQuery = r.URL.RawQuery
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"data":[]}`))
+		_, _ = w.Write([]byte(`{"data":[]}`))
 	})
 	defer srv.Close()
 
@@ -298,7 +298,7 @@ func TestGet_BulkRepeatedParams(t *testing.T) {
 func TestGet_MalformedJSON(t *testing.T) {
 	c, srv := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{invalid json`))
+		_, _ = w.Write([]byte(`{invalid json`))
 	})
 	defer srv.Close()
 
@@ -311,7 +311,7 @@ func TestGet_MalformedJSON(t *testing.T) {
 func TestGet_ObjectTimeSeries(t *testing.T) {
 	c, srv := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`[{"t":1726790400,"o":{"high":100,"low":90}}]`))
+		_, _ = w.Write([]byte(`[{"t":1726790400,"o":{"high":100,"low":90}}]`))
 	})
 	defer srv.Close()
 
@@ -337,7 +337,7 @@ func TestGet_ObjectTimeSeries(t *testing.T) {
 func TestGet_RawResponse(t *testing.T) {
 	c, srv := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`[{"t":1726790400,"v":123.45}]`))
+		_, _ = w.Write([]byte(`[{"t":1726790400,"v":123.45}]`))
 	})
 	defer srv.Close()
 
@@ -410,7 +410,7 @@ func TestGet_RateLimitHeaders(t *testing.T) {
 		w.Header().Set("x-rate-limit-reset", "60")
 		w.Header().Set("X-Request-ID", "req-123")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`[]`))
+		_, _ = w.Write([]byte(`[]`))
 	})
 	defer srv.Close()
 
@@ -463,7 +463,7 @@ func containsStr(s, substr string) bool {
 func TestClient_ConcurrentUse(t *testing.T) {
 	c, srv := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`[{"t":1726790400,"v":1}]`))
+		_, _ = w.Write([]byte(`[{"t":1726790400,"v":1}]`))
 	})
 	defer srv.Close()
 
@@ -492,7 +492,7 @@ func TestMetadata_Assets(t *testing.T) {
 			t.Errorf("expected path /v1/metadata/assets, got %s", r.URL.Path)
 		}
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"data":[{"id":"BTC","symbol":"BTC","name":"Bitcoin","asset_type":"coin"}]}`))
+		_, _ = w.Write([]byte(`{"data":[{"id":"BTC","symbol":"BTC","name":"Bitcoin","asset_type":"coin"}]}`))
 	})
 	defer srv.Close()
 
@@ -511,7 +511,7 @@ func TestMetadata_Metrics(t *testing.T) {
 			t.Errorf("expected path /v1/metadata/metrics, got %s", r.URL.Path)
 		}
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`["/addresses/count","/indicators/sopr"]`))
+		_, _ = w.Write([]byte(`["/addresses/count","/indicators/sopr"]`))
 	})
 	defer srv.Close()
 
@@ -533,7 +533,7 @@ func TestMetadata_Metric(t *testing.T) {
 			t.Errorf("expected path param /indicators/sopr, got %s", r.URL.Query().Get("path"))
 		}
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"path":"/indicators/sopr","tier":1,"is_pit":false,"parameters":{"a":["BTC","ETH"]}}`))
+		_, _ = w.Write([]byte(`{"path":"/indicators/sopr","tier":1,"is_pit":false,"parameters":{"a":["BTC","ETH"]}}`))
 	})
 	defer srv.Close()
 
@@ -563,7 +563,7 @@ func TestUser_APIUsage(t *testing.T) {
 			t.Errorf("expected path /v1/user/api_usage, got %s", r.URL.Path)
 		}
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"creditsUsed":42}`))
+		_, _ = w.Write([]byte(`{"creditsUsed":42}`))
 	})
 	defer srv.Close()
 
@@ -582,7 +582,7 @@ func TestCategoryService_Addresses(t *testing.T) {
 			t.Errorf("expected path /v1/metrics/addresses/active_count, got %s", r.URL.Path)
 		}
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`[{"t":1726790400,"v":1000000}]`))
+		_, _ = w.Write([]byte(`[{"t":1726790400,"v":1000000}]`))
 	})
 	defer srv.Close()
 
@@ -601,7 +601,7 @@ func TestCategoryService_Market(t *testing.T) {
 			t.Errorf("expected path /v1/metrics/market/price_usd_close, got %s", r.URL.Path)
 		}
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`[{"t":1726790400,"v":45000.5}]`))
+		_, _ = w.Write([]byte(`[{"t":1726790400,"v":45000.5}]`))
 	})
 	defer srv.Close()
 
@@ -620,7 +620,7 @@ func TestCategoryService_MarketOHLC(t *testing.T) {
 			t.Errorf("expected path /v1/metrics/market/price_usd_ohlc, got %s", r.URL.Path)
 		}
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`[{"t":1726790400,"o":{"o":44000,"h":46000,"l":43000,"c":45000}}]`))
+		_, _ = w.Write([]byte(`[{"t":1726790400,"o":{"o":44000,"h":46000,"l":43000,"c":45000}}]`))
 	})
 	defer srv.Close()
 
@@ -705,7 +705,7 @@ func TestCategoryService_Indicators(t *testing.T) {
 			t.Errorf("expected path /v1/metrics/indicators/sopr, got %s", r.URL.Path)
 		}
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`[{"t":1726790400,"v":1.05}]`))
+		_, _ = w.Write([]byte(`[{"t":1726790400,"v":1.05}]`))
 	})
 	defer srv.Close()
 
@@ -724,7 +724,7 @@ func TestCategoryService_PIT(t *testing.T) {
 			t.Errorf("expected path /v1/metrics/indicators/sopr_pit, got %s", r.URL.Path)
 		}
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`[{"t":1726790400,"v":1.05,"computed_at":1726790500}]`))
+		_, _ = w.Write([]byte(`[{"t":1726790400,"v":1.05,"computed_at":1726790500}]`))
 	})
 	defer srv.Close()
 
@@ -743,7 +743,7 @@ func TestBulkMetrics(t *testing.T) {
 			t.Errorf("expected path /v1/metrics/market/mvrv/bulk, got %s", r.URL.Path)
 		}
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"data":[{"t":1726790400,"bulk":[{"a":"BTC","v":2.1}]}]}`))
+		_, _ = w.Write([]byte(`{"data":[{"t":1726790400,"bulk":[{"a":"BTC","v":2.1}]}]}`))
 	})
 	defer srv.Close()
 
@@ -869,7 +869,7 @@ func TestGet_UserAgent(t *testing.T) {
 			t.Error("expected non-empty User-Agent header")
 		}
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`[]`))
+		_, _ = w.Write([]byte(`[]`))
 	}, WithUserAgent("test-agent"), WithAppID("test-app"))
 	defer srv.Close()
 

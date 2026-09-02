@@ -77,7 +77,7 @@ func (c *Client) doGet(ctx context.Context, path string, query url.Values, out i
 		}
 		return nil, fmt.Errorf("glassnode: request failed: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	meta := c.captureMetadata(resp, fullURL, elapsed)
 

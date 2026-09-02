@@ -15,11 +15,6 @@ type PointInTimeService struct {
 	client *Client
 }
 
-func (s *PointInTimeService) getMetric(ctx context.Context, name string, q *MetricQuery, out interface{}) error {
-	_, err := s.client.get(ctx, metricsPath("/pit/"+name), q.ToValues(), out)
-	return err
-}
-
 // GetRaw retrieves any point-in-time metric as raw JSON. The metricName
 // should be the full metric path (e.g. "/indicators/sopr_pit").
 func (s *PointInTimeService) GetRaw(ctx context.Context, metricPath string, q *MetricQuery) (json.RawMessage, error) {
