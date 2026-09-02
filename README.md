@@ -1,11 +1,15 @@
-# glassnode-go
+# GlassNode Golang SDK
 
 ![GlassNode Golang SDK](https://i.postimg.cc/853CkbFB/glassnode-golang-github.jpg)
 
-[![Go Version](https://img.shields.io/badge/Go-1.21+-00ADD8?logo=go&logoColor=white)](https://go.dev/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-passing-brightgreen)]()
-[![Coverage](https://img.shields.io/badge/coverage-39%20tests-brightgreen)]()
+[![CI](https://github.com/tigusigalpa/glassnode-go/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/tigusigalpa/glassnode-go/actions/workflows/ci.yml)
+[![Tests](https://github.com/tigusigalpa/glassnode-go/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/tigusigalpa/glassnode-go/actions/workflows/test.yml)
+[![Go Version](https://img.shields.io/badge/Go-1.21+-00ADD8?style=flat-square&logo=go)](https://golang.org/)
+[![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)](LICENSE)
+[![CodeQL](https://github.com/tigusigalpa/glassnode-go/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/tigusigalpa/glassnode-go/actions/workflows/codeql.yml)
+[![Codecov](https://codecov.io/gh/tigusigalpa/glassnode-go/graph/badge.svg)](https://codecov.io/gh/tigusigalpa/glassnode-go)
+[![GitHub Release](https://img.shields.io/github/v/release/tigusigalpa/glassnode-go?style=flat-square)](https://github.com/tigusigalpa/glassnode-go/releases)
+[![GoDoc](https://img.shields.io/badge/godoc-reference-blue?style=flat-square&logo=go)](https://pkg.go.dev/github.com/tigusigalpa/glassnode-go)
 
 > **Unofficial** Go SDK for the [Glassnode Basic API](https://docs.glassnode.com/basic-api/). Not affiliated with or
 > endorsed by Glassnode — just a community-built tool I wish had existed when I started working with on-chain data.

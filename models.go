@@ -12,6 +12,7 @@ import (
 // 1w, and 1month, subject to metric and subscription-plan availability.
 type Resolution string
 
+// Supported resolution values.
 const (
 	Resolution10m    Resolution = "10m"
 	Resolution1h     Resolution = "1h"
@@ -23,6 +24,7 @@ const (
 // Currency represents a supported currency for metric values.
 type Currency string
 
+// Supported currency values.
 const (
 	CurrencyNative Currency = "native"
 	CurrencyUSD    Currency = "usd"
@@ -31,6 +33,7 @@ const (
 // Format represents a supported response format.
 type Format string
 
+// Supported response format values.
 const (
 	FormatJSON Format = "json"
 	FormatCSV  Format = "csv"
@@ -39,6 +42,7 @@ const (
 // TimestampFormat represents the timestamp format in responses.
 type TimestampFormat string
 
+// Supported timestamp format values.
 const (
 	TimestampUnix      TimestampFormat = "unix"
 	TimestampHumanized TimestampFormat = "humanized"

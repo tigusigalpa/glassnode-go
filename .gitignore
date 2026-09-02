@@ -1,26 +1,45 @@
-# Binaries
+# Binaries for programs and plugins
 *.exe
+*.exe~
 *.dll
 *.so
 *.dylib
 
-# Test binary
+# Test binary, built with `go test -c`
 *.test
 
-# Output of go coverage
+# Output of the go coverage tool
 *.out
-coverage.txt
 
-# Go workspace
+# Local Go build and test caches
+.gocache/
+.gotmp/
+.tmp-go-cache/
+coverage/
+test-results/
+
+# Dependency directories
+vendor/
+
+# Go workspace file
 go.work
-go.work.sum
-
-# Environment files
-.env
-.env.local
 
 # IDE
 .idea/
 .vscode/
 *.swp
 *.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Build
+dist/
+build/
