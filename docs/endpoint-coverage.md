@@ -239,12 +239,12 @@ This document maps every Glassnode Basic API endpoint category to the SDK method
 
 | Metric Path | SDK Method | Response Model | Bulk | Status |
 |---|---|---|---|---|
-| `/macro/usa_interest_rate` | `client.Macro.USInterestRate()` | `[]TimePoint` | N/A | Typed wrapper |
-| `/macro/usa_central_bank_balance_sheet` | `client.Macro.USCentralBankBalanceSheet()` | `[]TimePoint` | N/A | Typed wrapper |
-| `/macro/usa_gdp` | `client.Macro.USGDP()` | `[]TimePoint` | N/A | Typed wrapper |
-| `/macro/usa_core_inflation_rate` | `client.Macro.USCoreInflationRate()` | `[]TimePoint` | N/A | Typed wrapper |
-| `/macro/usa_money_supply_m2` | `client.Macro.USMoneySupplyM2()` | `[]TimePoint` | N/A | Typed wrapper |
-| `/macro/eu_interest_rate` | `client.Macro.EuroAreaInterestRate()` | `[]TimePoint` | N/A | Typed wrapper |
+| `/macro/us_interest_rate` | `client.Macro.USInterestRate()` | `[]TimePoint` | N/A | Typed wrapper |
+| `/macro/us_central_bank_balance_sheet` | `client.Macro.USCentralBankBalanceSheet()` | `[]TimePoint` | N/A | Typed wrapper |
+| `/macro/us_gdp` | `client.Macro.USGDP()` | `[]TimePoint` | N/A | Typed wrapper |
+| `/macro/us_core_inflation_rate` | `client.Macro.USCoreInflationRate()` | `[]TimePoint` | N/A | Typed wrapper |
+| `/macro/us_money_supply_m2` | `client.Macro.USMoneySupplyM2()` | `[]TimePoint` | N/A | Typed wrapper |
+| `/macro/euro_interest_rate` | `client.Macro.EuroAreaInterestRate()` | `[]TimePoint` | N/A | Typed wrapper |
 | Any other `/macro/*` | `client.Macro.GetRaw()` | `json.RawMessage` | N/A | Generic client |
 
 ### Market
@@ -253,12 +253,12 @@ This document maps every Glassnode Basic API endpoint category to the SDK method
 
 | Metric Path | SDK Method | Response Model | Bulk | Status |
 |---|---|---|---|---|
-| `/market/price` | `client.Market.Price()` | `[]TimePoint` | Check metadata | Typed wrapper |
-| `/market/price_ohlc` | `client.Market.PriceOHLC()` | `[]ObjectPoint` | Check metadata | Typed wrapper |
-| `/market/marketcap` | `client.Market.MarketCap()` | `[]TimePoint` | Check metadata | Typed wrapper |
+| `/market/price_usd_close` | `client.Market.Price()` | `[]TimePoint` | Check metadata | Typed wrapper |
+| `/market/price_usd_ohlc` | `client.Market.PriceOHLC()` | `[]ObjectPoint` | Check metadata | Typed wrapper |
+| `/market/marketcap_usd` | `client.Market.MarketCap()` | `[]TimePoint` | Check metadata | Typed wrapper |
 | `/market/mvrv` | `client.Market.MVRV()` | `[]TimePoint` | Check metadata | Typed wrapper |
-| `/market/marketcap_realized` | `client.Market.RealizedCap()` | `[]TimePoint` | Check metadata | Typed wrapper |
-| `/market/price_realized` | `client.Market.RealizedPrice()` | `[]TimePoint` | Check metadata | Typed wrapper |
+| `/market/marketcap_realized_usd` | `client.Market.RealizedCap()` | `[]TimePoint` | Check metadata | Typed wrapper |
+| `/market/price_realized_usd` | `client.Market.RealizedPrice()` | `[]TimePoint` | Check metadata | Typed wrapper |
 | `/market/btc_dominance` | `client.Market.BTCDominance()` | `[]TimePoint` | Check metadata | Typed wrapper |
 | `/market/volume` | `client.Market.SpotVolume()` | `[]TimePoint` | Check metadata | Typed wrapper |
 | `/market/volume_usd_24h` | `client.Market.SpotVolume24h()` | `[]TimePoint` | Check metadata | Typed wrapper |

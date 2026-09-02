@@ -88,7 +88,9 @@ func (c *Client) doGet(ctx context.Context, path string, query url.Values, out i
 
 	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
 		if out != nil && len(body) > 0 {
-			if err := json.Unmarshal(body, out); err != nil {
+			if raw, ok := out.(*json.RawMessage); ok && query.Get("f") == string(FormatCSV) {
+				*raw = append((*raw)[:0], body...)
+			} else if err := json.Unmarshal(body, out); err != nil {
 				return meta, fmt.Errorf("glassnode: failed to decode response: %w", err)
 			}
 		}
@@ -114,7 +116,7 @@ func (c *Client) doGet(ctx context.Context, path string, query url.Values, out i
 // buildURL constructs the full request URL with query parameters.
 // When AuthModeQuery is used, the api_key parameter is appended.
 func (c *Client) buildURL(path string, query url.Values) string {
-	fullURL := c.baseURL + path
+	fullURL := strings.TrimRight(c.baseURL, "/") + path
 
 	// Copy query values so we don't mutate the caller's map.
 	q := url.Values{}
@@ -159,7 +161,7 @@ func (c *Client) captureMetadata(resp *http.Response, fullURL string, elapsed ti
 
 // retryDelay computes the delay before the next retry attempt. It
 // honors the x-rate-limit-reset header (seconds until reset) if present
-// and valid, otherwise falls back to exponential backoff with jitter.
+// and valid, otherwise falls back to exponential backoff.
 func (c *Client) retryDelay(rateLimitReset string, attempt int) time.Duration {
 	if rateLimitReset != "" {
 		if secs, err := strconv.Atoi(strings.TrimSpace(rateLimitReset)); err == nil && secs >= 0 {

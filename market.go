@@ -18,24 +18,24 @@ func (s *MarketService) getMetric(ctx context.Context, name string, q *MetricQue
 }
 
 // Price retrieves the market price.
-// Path: /market/price
+// Path: /market/price_usd_close
 func (s *MarketService) Price(ctx context.Context, q *MetricQuery) ([]TimePoint, error) {
 	var out []TimePoint
-	return out, s.getMetric(ctx, "price", q, &out)
+	return out, s.getMetric(ctx, "price_usd_close", q, &out)
 }
 
 // PriceOHLC retrieves the OHLC price.
-// Path: /market/price_ohlc
+// Path: /market/price_usd_ohlc
 func (s *MarketService) PriceOHLC(ctx context.Context, q *MetricQuery) ([]ObjectPoint, error) {
 	var out []ObjectPoint
-	return out, s.getMetric(ctx, "price_ohlc", q, &out)
+	return out, s.getMetric(ctx, "price_usd_ohlc", q, &out)
 }
 
 // MarketCap retrieves the market capitalization.
-// Path: /market/marketcap
+// Path: /market/marketcap_usd
 func (s *MarketService) MarketCap(ctx context.Context, q *MetricQuery) ([]TimePoint, error) {
 	var out []TimePoint
-	return out, s.getMetric(ctx, "marketcap", q, &out)
+	return out, s.getMetric(ctx, "marketcap_usd", q, &out)
 }
 
 // MVRV retrieves the MVRV Ratio.
@@ -46,17 +46,17 @@ func (s *MarketService) MVRV(ctx context.Context, q *MetricQuery) ([]TimePoint, 
 }
 
 // RealizedCap retrieves the realized capitalization.
-// Path: /market/marketcap_realized
+// Path: /market/marketcap_realized_usd
 func (s *MarketService) RealizedCap(ctx context.Context, q *MetricQuery) ([]TimePoint, error) {
 	var out []TimePoint
-	return out, s.getMetric(ctx, "marketcap_realized", q, &out)
+	return out, s.getMetric(ctx, "marketcap_realized_usd", q, &out)
 }
 
 // RealizedPrice retrieves the realized price.
-// Path: /market/price_realized
+// Path: /market/price_realized_usd
 func (s *MarketService) RealizedPrice(ctx context.Context, q *MetricQuery) ([]TimePoint, error) {
 	var out []TimePoint
-	return out, s.getMetric(ctx, "price_realized", q, &out)
+	return out, s.getMetric(ctx, "price_realized_usd", q, &out)
 }
 
 // BTCDominance retrieves BTC Dominance.

@@ -24,8 +24,9 @@ type MetricsService struct {
 //
 // The returned json.RawMessage can be unmarshaled into []TimePoint,
 // []ObjectPoint, []PITTimePoint, or []PITObjectPoint depending on the
-// metric's response shape. Use the metadata endpoint to determine the
-// expected shape.
+// metric's response shape. When query.Format is FormatCSV, it instead
+// contains the unmodified CSV response bytes. Use the metadata endpoint
+// to determine the expected shape.
 //
 // Documentation: https://docs.glassnode.com/basic-api/endpoints
 func (s *MetricsService) Get(ctx context.Context, metricPath string, query *MetricQuery) (json.RawMessage, error) {

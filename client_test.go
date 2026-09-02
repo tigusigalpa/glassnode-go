@@ -6,6 +6,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"sync"
 	"testing"
 	"time"
@@ -353,6 +354,55 @@ func TestGet_RawResponse(t *testing.T) {
 	}
 }
 
+func TestGet_RawCSVResponse(t *testing.T) {
+	c, srv := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+		if got := r.URL.Query().Get("f"); got != string(FormatCSV) {
+			t.Errorf("expected format query parameter %q, got %q", FormatCSV, got)
+		}
+		w.Header().Set("Content-Type", "text/csv")
+		_, _ = w.Write([]byte("t,v\n1726790400,123.45\n"))
+	})
+	defer srv.Close()
+
+	raw, err := c.Metrics.Get(context.Background(), "/indicators/sopr", &MetricQuery{
+		Asset:  "BTC",
+		Format: FormatCSV,
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if got, want := string(raw), "t,v\n1726790400,123.45\n"; got != want {
+		t.Errorf("expected CSV response %q, got %q", want, got)
+	}
+}
+
+func TestGet_RawResponseRejectsMalformedJSON(t *testing.T) {
+	c, srv := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+		_, _ = w.Write([]byte(`not json`))
+	})
+	defer srv.Close()
+
+	_, err := c.Metrics.Get(context.Background(), "/indicators/sopr", &MetricQuery{Asset: "BTC"})
+	if err == nil {
+		t.Fatal("expected malformed JSON error")
+	}
+}
+
+func TestGet_BaseURLWithTrailingSlash(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if got, want := r.URL.Path, "/v1/metrics/indicators/sopr"; got != want {
+			t.Errorf("expected request path %q, got %q", want, got)
+		}
+		_, _ = w.Write([]byte(`[]`))
+	}))
+	defer srv.Close()
+
+	c := NewClient("test-api-key", WithBaseURL(srv.URL+"/"))
+	if _, err := c.Metrics.GetTimePoints(context.Background(), "/indicators/sopr", &MetricQuery{Asset: "BTC"}); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
 func TestGet_RateLimitHeaders(t *testing.T) {
 	c, srv := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("x-rate-limit-limit", "600")
@@ -547,8 +597,8 @@ func TestCategoryService_Addresses(t *testing.T) {
 
 func TestCategoryService_Market(t *testing.T) {
 	c, srv := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/v1/metrics/market/price" {
-			t.Errorf("expected path /v1/metrics/market/price, got %s", r.URL.Path)
+		if r.URL.Path != "/v1/metrics/market/price_usd_close" {
+			t.Errorf("expected path /v1/metrics/market/price_usd_close, got %s", r.URL.Path)
 		}
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(`[{"t":1726790400,"v":45000.5}]`))
@@ -566,8 +616,8 @@ func TestCategoryService_Market(t *testing.T) {
 
 func TestCategoryService_MarketOHLC(t *testing.T) {
 	c, srv := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/v1/metrics/market/price_ohlc" {
-			t.Errorf("expected path /v1/metrics/market/price_ohlc, got %s", r.URL.Path)
+		if r.URL.Path != "/v1/metrics/market/price_usd_ohlc" {
+			t.Errorf("expected path /v1/metrics/market/price_usd_ohlc, got %s", r.URL.Path)
 		}
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(`[{"t":1726790400,"o":{"o":44000,"h":46000,"l":43000,"c":45000}}]`))
@@ -580,6 +630,72 @@ func TestCategoryService_MarketOHLC(t *testing.T) {
 	}
 	if len(data) != 1 {
 		t.Fatalf("expected 1 data point, got %d", len(data))
+	}
+}
+
+func TestMacroServicePaths(t *testing.T) {
+	var paths []string
+	c, srv := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+		paths = append(paths, r.URL.Path)
+		_, _ = w.Write([]byte(`[]`))
+	})
+	defer srv.Close()
+
+	q := &MetricQuery{Asset: "BTC"}
+	methods := []func(context.Context, *MetricQuery) ([]TimePoint, error){
+		c.Macro.USInterestRate,
+		c.Macro.USCentralBankBalanceSheet,
+		c.Macro.USGDP,
+		c.Macro.USCoreInflationRate,
+		c.Macro.USMoneySupplyM2,
+		c.Macro.EuroAreaInterestRate,
+	}
+	for _, method := range methods {
+		if _, err := method(context.Background(), q); err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+	}
+
+	want := []string{
+		"/v1/metrics/macro/us_interest_rate",
+		"/v1/metrics/macro/us_central_bank_balance_sheet",
+		"/v1/metrics/macro/us_gdp",
+		"/v1/metrics/macro/us_core_inflation_rate",
+		"/v1/metrics/macro/us_money_supply_m2",
+		"/v1/metrics/macro/euro_interest_rate",
+	}
+	if !reflect.DeepEqual(paths, want) {
+		t.Errorf("unexpected macro paths:\nwant %v\n got %v", want, paths)
+	}
+}
+
+func TestMarketUSDServicePaths(t *testing.T) {
+	var paths []string
+	c, srv := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+		paths = append(paths, r.URL.Path)
+		_, _ = w.Write([]byte(`[]`))
+	})
+	defer srv.Close()
+
+	q := &MetricQuery{Asset: "BTC"}
+	methods := []func(context.Context, *MetricQuery) ([]TimePoint, error){
+		c.Market.MarketCap,
+		c.Market.RealizedCap,
+		c.Market.RealizedPrice,
+	}
+	for _, method := range methods {
+		if _, err := method(context.Background(), q); err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+	}
+
+	want := []string{
+		"/v1/metrics/market/marketcap_usd",
+		"/v1/metrics/market/marketcap_realized_usd",
+		"/v1/metrics/market/price_realized_usd",
+	}
+	if !reflect.DeepEqual(paths, want) {
+		t.Errorf("unexpected market paths:\nwant %v\n got %v", want, paths)
 	}
 }
 

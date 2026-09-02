@@ -18,45 +18,45 @@ func (s *MacroService) getMetric(ctx context.Context, name string, q *MetricQuer
 }
 
 // USInterestRate retrieves the US interest rate.
-// Path: /macro/usa_interest_rate
+// Path: /macro/us_interest_rate
 func (s *MacroService) USInterestRate(ctx context.Context, q *MetricQuery) ([]TimePoint, error) {
 	var out []TimePoint
-	return out, s.getMetric(ctx, "usa_interest_rate", q, &out)
+	return out, s.getMetric(ctx, "us_interest_rate", q, &out)
 }
 
 // USCentralBankBalanceSheet retrieves the US central bank balance sheet.
-// Path: /macro/usa_central_bank_balance_sheet
+// Path: /macro/us_central_bank_balance_sheet
 func (s *MacroService) USCentralBankBalanceSheet(ctx context.Context, q *MetricQuery) ([]TimePoint, error) {
 	var out []TimePoint
-	return out, s.getMetric(ctx, "usa_central_bank_balance_sheet", q, &out)
+	return out, s.getMetric(ctx, "us_central_bank_balance_sheet", q, &out)
 }
 
 // USGDP retrieves the US GDP.
-// Path: /macro/usa_gdp
+// Path: /macro/us_gdp
 func (s *MacroService) USGDP(ctx context.Context, q *MetricQuery) ([]TimePoint, error) {
 	var out []TimePoint
-	return out, s.getMetric(ctx, "usa_gdp", q, &out)
+	return out, s.getMetric(ctx, "us_gdp", q, &out)
 }
 
 // USCoreInflationRate retrieves the US core inflation rate.
-// Path: /macro/usa_core_inflation_rate
+// Path: /macro/us_core_inflation_rate
 func (s *MacroService) USCoreInflationRate(ctx context.Context, q *MetricQuery) ([]TimePoint, error) {
 	var out []TimePoint
-	return out, s.getMetric(ctx, "usa_core_inflation_rate", q, &out)
+	return out, s.getMetric(ctx, "us_core_inflation_rate", q, &out)
 }
 
 // USMoneySupplyM2 retrieves the US M2 money supply.
-// Path: /macro/usa_money_supply_m2
+// Path: /macro/us_money_supply_m2
 func (s *MacroService) USMoneySupplyM2(ctx context.Context, q *MetricQuery) ([]TimePoint, error) {
 	var out []TimePoint
-	return out, s.getMetric(ctx, "usa_money_supply_m2", q, &out)
+	return out, s.getMetric(ctx, "us_money_supply_m2", q, &out)
 }
 
 // EuroAreaInterestRate retrieves the Euro area interest rate.
-// Path: /macro/eu_interest_rate
+// Path: /macro/euro_interest_rate
 func (s *MacroService) EuroAreaInterestRate(ctx context.Context, q *MetricQuery) ([]TimePoint, error) {
 	var out []TimePoint
-	return out, s.getMetric(ctx, "eu_interest_rate", q, &out)
+	return out, s.getMetric(ctx, "euro_interest_rate", q, &out)
 }
 
 // GetRaw retrieves any macro metric as raw JSON.

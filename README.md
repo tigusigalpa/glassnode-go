@@ -56,7 +56,7 @@ If that sounds like you, welcome — you're in the right place.
   data calls and avoid wasting credits on bad requests
 - **Survive rate limits gracefully** — automatic retry on 429 with server-aware backoff, so you don't have to wrap every
   call in your own retry loop
-- **Keep your API key safe** — header-based auth by default, and the SDK redacts the key in all URLs and error messages
+- **Keep your API key safe** — header-based auth by default, and the SDK redacts the key in request URLs and response metadata
   so it never leaks into your logs
 - **Only pay for what you use** — bulk endpoints with explicit asset lists put you in control of credit consumption, no
   accidental wildcard blow-ups
@@ -74,7 +74,7 @@ If that sounds like you, welcome — you're in the right place.
   it
 - **Automatic retry** on HTTP 429 with `x-rate-limit-reset` support and exponential backoff as a fallback
 - **Exported, inspectable error types** with `errors.Is` / `errors.As` support — no string matching required
-- **API key redaction** in all URLs and error messages — your key never leaks into logs, panic messages, or stack traces
+- **API key redaction** in request URLs and response metadata, including query-string authentication
 - **Concurrency-safe** `Client` suitable for goroutine use without additional locking
 - **Configurable HTTP transport** for testing and custom `http.RoundTripper` implementations (proxies, middleware,
   recording)
@@ -136,7 +136,7 @@ without spending credits on guesses:
 
 ```go
 // List all supported assets
-assets, err := client.Metadata.Assets(ctx)
+assets, err := client.Metadata.Assets(ctx, "")
 if err != nil {
     log.Fatal(err)
 }
@@ -149,8 +149,8 @@ metricInfo, err := client.Metadata.Metric(ctx, "/market/price_usd")
 if err != nil {
     log.Fatal(err)
 }
-fmt.Printf("Metric: %s\n", metricInfo.Description)
-fmt.Printf("Accepts resolution: %v\n", metricInfo.Resolutions)
+fmt.Printf("Metric: %s\n", metricInfo.Path)
+fmt.Printf("Parameters: %v\n", metricInfo.Parameters)
 ```
 
 ### Common Use Cases
@@ -186,10 +186,10 @@ active, err := client.Addresses.ActiveCount(ctx, &glassnode.MetricQuery{
 })
 
 // Hash rate — mining security
-hashrate, err := client.Mining.HashRateMean(ctx, &glassnode.MetricQuery{Asset: "BTC"})
+hashrate, err := client.Mining.HashRate(ctx, &glassnode.MetricQuery{Asset: "BTC"})
 
 // Total supply — track inflation
-supply, err := client.Supply.Current(ctx, &glassnode.MetricQuery{Asset: "BTC"})
+supply, err := client.Supply.CirculatingSupply(ctx, &glassnode.MetricQuery{Asset: "BTC"})
 ```
 
 **Concurrent fetches with goroutines:**
@@ -237,7 +237,7 @@ usage, err := client.User.APIUsage(ctx)
 if err != nil {
     log.Fatal(err)
 }
-fmt.Printf("Credits used today: %d / %d\n", usage.Used, usage.Limit)
+fmt.Printf("Credits used this month: %d\n", usage.CreditsUsed)
 ```
 
 ## API Key Security
@@ -249,8 +249,8 @@ effectively is one.
 - Use `NewClientFromEnv()` to read from the `GLASSNODE_API_KEY` environment variable — this is the recommended path for
   almost every deployment
 - Or pass the key at runtime: `glassnode.NewClient(os.Getenv("GLASSNODE_API_KEY"))`
-- The SDK **redacts** the API key in all URLs, error messages, and response metadata — your key never leaks into logs or
-  panic messages, even when something goes wrong
+- The SDK **redacts** the API key in request URLs and response metadata, including when query-string authentication is
+  enabled
 - **Header mode** (`X-Api-Key`) is the default and recommended; the key is sent in an HTTP header and never appears in
   URLs, access logs, or proxy traces
 - **Query-string mode** (`api_key`) is opt-in via `WithAuthMode(AuthModeQuery)` for environments where headers aren't
@@ -295,8 +295,8 @@ client := glassnode.NewClient("key",
 |-----------------------|-----------------------------|--------------------------------------------------------------|
 | `WithBaseURL(url)`    | `https://api.glassnode.com` | API base URL                                                 |
 | `WithTimeout(d)`      | `30s`                       | HTTP request timeout                                         |
-| `WithRetry(n, delay)` | `3, 1s`                     | Max retry attempts on 429 + base backoff delay               |
-| `WithHTTPClient(c)`   | `http.DefaultClient`        | Custom HTTP client (for testing, proxies, custom transports) |
+| `WithRetry(n, delay)` | `1, 500ms`                  | Max retry attempts on 429 + base backoff delay               |
+| `WithHTTPClient(c)`   | `&http.Client{Timeout: 30s}` | Custom HTTP client (for testing, proxies, custom transports) |
 | `WithUserAgent(ua)`   | `glassnode-go/1.0`          | User-Agent header                                            |
 | `WithAppID(id)`       | `""`                        | Optional app identifier                                      |
 | `WithAuthMode(mode)`  | `AuthModeHeader`            | `AuthModeHeader` or `AuthModeQuery`                          |
@@ -378,13 +378,13 @@ sent when set:
 
 ```go
 type MetricQuery struct {
-    Asset           string   // Required — e.g. "BTC", "ETH"
-    Resolution      string   // Optional — "10m", "1h", "24h", "1w", "1month"
+    Asset           string          // Required — e.g. "BTC", "ETH"
+    Resolution      Resolution      // Optional — Resolution10m, Resolution1h, etc.
     Since           *int64   // Optional — Unix timestamp
     Until           *int64   // Optional — Unix timestamp
-    Currency        string   // Optional — for market metrics ("USD", "EUR")
-    Format          string   // Optional — "Json" (default) or "CSV"
-    TimestampFormat string   // Optional — "unix", "humanized", "humanized-30d"
+    Currency        Currency        // Optional — CurrencyNative or CurrencyUSD
+    Format          Format          // Optional — FormatJSON or FormatCSV
+    TimestampFormat TimestampFormat // Optional — TimestampUnix or TimestampHumanized
 }
 ```
 
@@ -477,7 +477,6 @@ retry count, rate-limit reset, response body — so you can make informed decisi
 | `ErrUnauthorized`   | 401         | API key missing, invalid, or expired     |
 | `ErrNotFound`       | 404         | Metric path not found                    |
 | `ErrRateLimited`    | 429         | Rate limit hit (after retries exhausted) |
-| `ErrInternalServer` | 500         | Glassnode server error                   |
 
 The `APIError` struct includes the HTTP status code, response body, retry count, and `RateLimitReset` value (when
 available). Use `errors.As` to unwrap it and inspect the details.
@@ -486,8 +485,8 @@ available). Use `errors.As` to unwrap it and inspect the details.
 
 For long-running services, a simple but effective pattern is: on `ErrRateLimited`, pause the worker for `RateLimitReset`
 seconds (or a sensible fallback) before retrying the queue; on `ErrUnauthorized`, fail fast and alert — there's no point
-retrying a bad key. On `ErrInternalServer`, retry with backoff. Everything else is probably a bug in your request — log
-it and move on.
+retrying a bad key. On a 5xx `APIError`, retry with backoff. Everything else is probably a bug in your request — log it
+and move on.
 
 ## Retry Behavior
 
@@ -500,7 +499,7 @@ responses automatically so you can keep your call sites clean:
 - **Falls back to exponential backoff** when the header is absent: `baseDelay * 2^attempt`
 - **Never retries** 400, 401, or 404 — these are client errors that won't resolve by retrying, and retrying them just
   wastes time
-- **Configurable** via `WithRetry(maxAttempts, baseDelay)` (defaults: 3 attempts, 1s base delay)
+- **Configurable** via `WithRetry(maxAttempts, baseDelay)` (defaults: 1 attempt, 500ms base delay)
 
 If all retry attempts are exhausted, an `APIError` wrapping `ErrRateLimited` is returned with the retry count and
 `RateLimitReset` value (if available) so your application can decide how to handle it — queue the request for later,
@@ -554,7 +553,7 @@ sometimes revises historical data, and a backtest that uses today's values for p
 strategy would have performed:
 
 ```go
-pit, err := client.PointInTime./* metric method */(ctx, &glassnode.MetricQuery{
+pit, err := client.PointInTime.GetPITTimePoints(ctx, "/indicators/sopr_pit", &glassnode.MetricQuery{
     Asset: "BTC",
 })
 // Each point carries both the data timestamp (t) and the computed_at timestamp,
@@ -657,9 +656,9 @@ to fan out as wide as your rate limit allows.
 <details>
 <summary><strong>How do I get CSV format instead of JSON?</strong></summary>
 
-Set `Format: "CSV"` in the `MetricQuery` struct. The SDK returns the raw CSV bytes as-is — it doesn't parse them,
-because CSV shapes vary too much across metrics to model cleanly. JSON (the default) is automatically decoded into typed
-structs.
+Set `Format: glassnode.FormatCSV` in the `MetricQuery` passed to `client.Metrics.Get`. That method returns the raw CSV
+bytes as-is; it does not parse CSV because shapes vary across metrics. JSON (the default) is automatically decoded into
+typed structs.
 </details>
 
 <details>
